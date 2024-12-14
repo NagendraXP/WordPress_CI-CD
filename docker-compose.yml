@@ -1,0 +1,45 @@
+version: '3.7'
+
+volumes:
+  db-data:
+  wp-data:
+
+services:
+  db:
+    container_name: stateless-wordpress_db
+    image: mysql:5.7
+    restart: always
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+
+  wordpress:
+    container_name: stateless-wordpress_wordpress
+    build: ./wordpress
+    restart: always
+    volumes:
+      - wp-data:/var/www/html
+    depends_on:
+      - db
+    environment:
+      WP_DB_HOST: db
+      WP_DB_NAME: wordpress
+      WP_DB_USER: wordpress
+      WP_DB_PASSWORD: wordpress
+
+  nginx:
+    container_name: stateless-wordpress_nginx
+    build: ./nginx
+    restart: always
+    volumes:
+      - wp-data:/var/www/html
+    depends_on: 
+      - wordpress
+    ports: 
+      - "8080:80"
+    environment:
+      UPSTREAM_SERVER: wordpress
